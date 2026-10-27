@@ -1,0 +1,14 @@
+# Development database only. Credentials match .env.example and are not secrets.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: jobboard
+      POSTGRES_PASSWORD: jobboard_dev
+      POSTGRES_DB: jobboard
+    ports:
+      - "55432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:

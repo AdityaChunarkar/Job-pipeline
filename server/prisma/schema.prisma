@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  EMPLOYER
+  CANDIDATE
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  REMOTE
+}
+
+enum JobStatus {
+  OPEN
+  CLOSED
+}
+
+enum ApplicationStatus {
+  APPLIED
+  SHORTLISTED
+  INTERVIEW
+  HIRED
+  REJECTED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role
+  company      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  jobs          Job[]
+  applications  Application[]
+  notes         EmployerNote[]
+  notifications Notification[]
+  statusChanges ApplicationStatusHistory[]
+}
+
+model Job {
+  id          String    @id @default(uuid())
+  employerId  String
+  title       String
+  location    String
+  type        JobType
+  salaryMin   Int?
+  salaryMax   Int?
+  description String
+  status      JobStatus @default(OPEN)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  employer     User          @relation(fields: [employerId], references: [id], onDelete: Cascade)
+  applications Application[]
+
+  @@index([employerId])
+  @@index([status, createdAt])
+  @@index([location])
+  @@index([type])
+}
+
+model Application {
+  id               String            @id @default(uuid())
+  jobId            String
+  candidateId      String
+  status           ApplicationStatus @default(APPLIED)
+  coverLetter      String?
+  resumeFile       String // server-generated filename inside private storage
+  resumeOriginalName String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  job       Job                        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  candidate User                       @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  history   ApplicationStatusHistory[]
+  notes     EmployerNote[]
+
+  @@unique([jobId, candidateId])
+  @@index([candidateId])
+  @@index([jobId, status])
+}
+
+model ApplicationStatusHistory {
+  id            String             @id @default(uuid())
+  applicationId String
+  fromStatus    ApplicationStatus?
+  toStatus      ApplicationStatus
+  changedById   String
+  createdAt     DateTime           @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  changedBy   User        @relation(fields: [changedById], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, createdAt])
+}
+
+model EmployerNote {
+  id            String   @id @default(uuid())
+  applicationId String
+  employerId    String
+  body          String
+  createdAt     DateTime @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  employer    User        @relation(fields: [employerId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, createdAt])
+}
+
+model Notification {
+  id            String    @id @default(uuid())
+  userId        String
+  applicationId String?
+  message       String
+  readAt        DateTime?
+  createdAt     DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+}
