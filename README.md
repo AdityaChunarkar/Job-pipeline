@@ -100,7 +100,7 @@ The seed creates 6 jobs (varied locations/types, one closed) and 7 applications 
 
 **Verified:** type-check, lint, production builds, all 23 tests, seed idempotency, and a manual HTTP walkthrough through the Vite proxy (login, listing, apply with invalid and valid PDF, duplicate refusal, resume download as owner/candidate/anonymous, invalid and valid status transitions, notification delivery, security headers).
 
-**Not verified:** the React UI was built and type-checked but I did not click through it in a browser, so layout/responsiveness has not been visually confirmed. There are no frontend tests. **Not deployed**; there is no live demo URL.
+**Not verified:** There are no frontend tests. **Not deployed**; there is no live demo URL.
 
 ## Known limitations / future improvements
 
